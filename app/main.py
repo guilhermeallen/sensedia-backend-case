@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.core.configs import settings
 from app.core.database import engine
 from app.models.models import Base
+from app.routers import cliente_router
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -10,6 +12,9 @@ app = FastAPI(
     version="1.0.0",
     description="API do Case Sensedia - Gestão de Clientes e Apólices"
 )
+
+
+app.include_router(cliente_router.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def home():
