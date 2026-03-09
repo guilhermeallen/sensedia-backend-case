@@ -35,3 +35,25 @@ class ClienteService:
                 detail="Cliente não encontrado."
             )
         return cliente
+    
+    def deletar_cliente(self, id: int):
+        cliente = self.buscar_cliente(id)
+        self.repository.deletar(cliente)
+
+    def atualizar_cliente(self, id: int, dados_novos: dict):
+        cliente = self.buscar_cliente(id)
+
+        # Validação extra: Se estiver tentando mudar o CPF, verificar se já não existe em OUTRO cliente
+        if "cpf" in dados_novos and dados_novos["cpf"] != cliente.cpf:
+            if self.repository.buscar_por_cpf(dados_novos["cpf"]):
+                raise HTTPException(status_code=400, detail="CPF já cadastrado em outro cliente.")
+        
+        # Validação extra: Email duplicado
+        if "email" in dados_novos and dados_novos["email"] != cliente.email:
+            if self.repository.buscar_por_email(dados_novos["email"]):
+                raise HTTPException(status_code=400, detail="Email já cadastrado em outro cliente.")
+
+        for key, value in dados_novos.items():
+            setattr(cliente, key, value)
+            
+        return self.repository.atualizar(cliente)

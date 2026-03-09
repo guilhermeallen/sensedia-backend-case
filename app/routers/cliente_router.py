@@ -23,3 +23,19 @@ def listar_clientes(db: Session = Depends(get_db)):
 def buscar_cliente(id: int, db: Session = Depends(get_db)):
     service = ClienteService(db)
     return service.buscar_cliente(id)
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_cliente(id: int, db: Session = Depends(get_db)):
+    service = ClienteService(db)
+    service.deletar_cliente(id)
+
+@router.put("/{id}", response_model=ClienteResponse)
+def atualizar_cliente_completo(id: int, cliente: ClienteCreate, db: Session = Depends(get_db)):
+    service = ClienteService(db)
+    # Transforma o schema em dict para passar pro service
+    return service.atualizar_cliente(id, cliente.dict())
+
+@router.patch("/{id}", response_model=ClienteResponse)
+def atualizar_cliente_parcial(id: int, cliente: dict, db: Session = Depends(get_db)):
+    service = ClienteService(db)
+    return service.atualizar_cliente(id, cliente)

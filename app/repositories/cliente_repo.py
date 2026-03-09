@@ -20,6 +20,15 @@ class ClienteRepository:
         # 4. Atualiza o objeto com o ID gerado pelo banco
         self.db.refresh(db_cliente)
         return db_cliente
+    
+    def deletar(self, cliente: Cliente):
+        self.db.delete(cliente)
+        self.db.commit()
+
+    def atualizar(self, db_cliente: Cliente):
+        self.db.commit()
+        self.db.refresh(db_cliente)
+        return db_cliente
 
     def listar_todos(self):
         return self.db.query(Cliente).all()

@@ -18,6 +18,11 @@ def listar_apolices(db: Session = Depends(get_db)):
     service = ApoliceService(db)
     return service.listar_apolices()
 
+@router.get("/{id}", response_model=ApoliceResponse)
+def buscar_apolice(id: int, db: Session = Depends(get_db)):
+    service = ApoliceService(db)
+    return service.buscar_apolice(id)
+
 
 @router.delete("/{id}", status_code=204)
 def deletar_apolice(id: int, db: Session = Depends(get_db)):
