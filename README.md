@@ -4,9 +4,9 @@ Este repositório contém a solução para o case técnico de Backend em Python 
 
 ## 🔗 Links do Projeto
 
-* **API no Render (Backend):** `https://sensedia-api-backend.onrender.com/docs`
-* **API Gateway (Sensedia):** `https://api-consulting.sensedia.com/cli-2/api/v1`
-* **Apresentação de Slides:** `https://docs.google.com/presentation/d/1wRWUZdBTKiuwx_Q2aFsua5uJ8npFPrT5LpypHLGEJdc/edit?usp=sharing`
+* **API no Render (Backend):** https://sensedia-api-backend.onrender.com/docs
+* **API Gateway (Sensedia):** https://api-consulting.sensedia.com/cli-2/api/v1
+* **Apresentação de Slides:** https://docs.google.com/presentation/d/1wRWUZdBTKiuwx_Q2aFsua5uJ8npFPrT5LpypHLGEJdc/edit?usp=sharing
 
 ---
 
