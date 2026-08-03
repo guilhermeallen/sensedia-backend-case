@@ -33,3 +33,19 @@ class ApoliceResponse(ApoliceBase):
     
     class Config:
         from_attributes = True
+
+
+class LogErroResponse(BaseModel):
+    id: int
+    timestamp: datetime
+    level: str
+    message: str
+    correlation_id: Optional[str] = None
+    endpoint: Optional[str] = None
+    method: Optional[str] = None
+    status_code: Optional[int] = None
+    traceback: Optional[str] = None
+    module: Optional[str] = None
+
+    class Config:
+        from_attributes = True

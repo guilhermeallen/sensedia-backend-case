@@ -1,11 +1,14 @@
 import uuid
 import time
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from loguru import logger
 from app.core.configs import settings
 from app.core.database import engine
 from app.models.models import Base
-from app.routers import cliente_router
+from app.core.logging_config import setup_logging
 from app.routers import cliente_router, apolice_router
+from app.routers import log_router
 
 #Base.metadata.create_all(bind=engine)
 
@@ -15,34 +18,77 @@ app = FastAPI(
     description="API do Case Sensedia - Gestão de Clientes e Apólices"
 )
 
+setup_logging()
+
 
 # --- REQUISITO: LOGS E CORRELATION ID  ---
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
-    # 1. Gera um ID único para a requisição
     correlation_id = str(uuid.uuid4())
-    
-    # 2. Adiciona no log (print simples aparece no log do Render)
-    print(f"[{correlation_id}] Iniciando requisição: {request.method} {request.url}")
-    
+
+    logger.bind(correlation_id=correlation_id).info(
+        f"Iniciando requisição: {request.method} {request.url}"
+    )
+
     start_time = time.time()
-    
-    # 3. Processa a requisição
+
     response = await call_next(request)
-    
-    # 4. Calcula tempo de execução
+
     process_time = time.time() - start_time
-    
-    # 5. Adiciona o ID no header da resposta (útil para debug no Postman)
+
     response.headers["X-Correlation-ID"] = correlation_id
-    
-    print(f"[{correlation_id}] Finalizado em {process_time:.4f}s - Status: {response.status_code}")
-    
+
+    logger.bind(correlation_id=correlation_id).info(
+        f"Finalizado em {process_time:.4f}s - Status: {response.status_code}"
+    )
+
     return response
+
+
+# --- EXCEPTION HANDLERS GLOBAIS ---
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    status_code = exc.status_code
+    level = "ERROR" if status_code >= 500 else "WARNING"
+
+    logger.bind(
+        correlation_id=request.headers.get("X-Correlation-ID", "-"),
+        endpoint=str(request.url),
+        method=request.method,
+        status_code=status_code,
+        module=request.url.path,
+    ).log(level, exc.detail)
+
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    import traceback as tb
+
+    tb_str = "".join(tb.format_exception(type(exc), exc, exc.__traceback__))
+
+    logger.bind(
+        correlation_id=request.headers.get("X-Correlation-ID", "-"),
+        endpoint=str(request.url),
+        method=request.method,
+        status_code=500,
+        module=request.url.path,
+        traceback_str=tb_str,
+    ).error(f"Erro interno: {exc}")
+
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro interno do servidor"},
+    )
 
 
 app.include_router(cliente_router.router, prefix=settings.API_V1_STR)
 app.include_router(apolice_router.router, prefix=settings.API_V1_STR)
+app.include_router(log_router.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def home():

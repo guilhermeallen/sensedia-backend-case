@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
@@ -31,4 +31,19 @@ class Apolice(Base):
     
     # Relacionamento inverso (para acessar apolice.cliente)
     cliente = relationship("Cliente", back_populates="apolices")
+
+
+class LogErro(Base):
+    __tablename__ = "logs_erro"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.now, index=True)
+    level = Column(String(20), nullable=False)
+    message = Column(Text, nullable=False)
+    correlation_id = Column(String(36), nullable=True)
+    endpoint = Column(String(255), nullable=True)
+    method = Column(String(10), nullable=True)
+    status_code = Column(Integer, nullable=True)
+    traceback = Column(Text, nullable=True)
+    module = Column(String(255), nullable=True)
 
