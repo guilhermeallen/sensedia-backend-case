@@ -9,12 +9,12 @@ from app.schemas.schemas import ClienteCreate, ClienteResponse
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
-@router.post("/", response_model=ClienteResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ClienteResponse, status_code=status.HTTP_201_CREATED)
 def criar_cliente(cliente: ClienteCreate, db: Session = Depends(get_db)):
     service = ClienteService(db)
     return service.criar_cliente(cliente)
 
-@router.get("/", response_model=List[ClienteResponse])
+@router.get("", response_model=List[ClienteResponse])
 def listar_clientes(db: Session = Depends(get_db)):
     service = ClienteService(db)
     return service.listar_clientes()

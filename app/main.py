@@ -34,8 +34,6 @@ async def add_correlation_id(request: Request, call_next):
 
     response = await call_next(request)
 
-    process_time = time.time() - start_time
-
     response.headers["X-Correlation-ID"] = correlation_id
 
     logger.bind(correlation_id=correlation_id).info(

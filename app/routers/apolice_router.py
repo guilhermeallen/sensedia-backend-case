@@ -8,12 +8,12 @@ from app.schemas.schemas import ApoliceCreate, ApoliceResponse
 
 router = APIRouter(prefix="/apolices", tags=["Apólices"])
 
-@router.post("/", response_model=ApoliceResponse, status_code=201)
+@router.post("", response_model=ApoliceResponse, status_code=201)
 def criar_apolice(apolice: ApoliceCreate, db: Session = Depends(get_db)):
     service = ApoliceService(db)
     return service.criar_apolice(apolice)
 
-@router.get("/", response_model=List[ApoliceResponse])
+@router.get("", response_model=List[ApoliceResponse])
 def listar_apolices(db: Session = Depends(get_db)):
     service = ApoliceService(db)
     return service.listar_apolices()
