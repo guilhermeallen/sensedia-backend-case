@@ -11,7 +11,7 @@ from app.schemas.schemas import LogErroResponse
 router = APIRouter(prefix="/logs", tags=["Logs"])
 
 
-@router.get("/", response_model=List[LogErroResponse])
+@router.get("", response_model=List[LogErroResponse])
 def buscar_logs(
     data_inicio: Optional[datetime] = Query(None, description="Filtra logs a partir desta data (inclusive). Ex: 2025-01-01T00:00:00"),
     data_fim: Optional[datetime] = Query(None, description="Filtra logs até esta data (inclusive). Ex: 2025-01-31T23:59:59"),
