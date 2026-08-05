@@ -69,6 +69,11 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
     tb_str = "".join(tb.format_exception(type(exc), exc, exc.__traceback__))
 
+    max_tb_length = 4096
+    if len(tb_str) > max_tb_length:
+        keep = max_tb_length // 2
+        tb_str = tb_str[:keep] + "\n... [truncado] ...\n" + tb_str[-keep:]
+
     logger.bind(
         correlation_id=request.headers.get("X-Correlation-ID", "-"),
         endpoint=str(request.url),

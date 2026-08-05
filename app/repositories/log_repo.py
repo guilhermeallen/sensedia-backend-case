@@ -14,6 +14,8 @@ class LogRepository:
         data_fim: Optional[datetime] = None,
         level: Optional[str] = None,
         status_code: Optional[int] = None,
+        limit: int = 5,
+        offset: int = 0,
     ) -> List[LogErro]:
         query = self.db.query(LogErro)
 
@@ -29,10 +31,16 @@ class LogRepository:
         if status_code is not None:
             query = query.filter(LogErro.status_code == status_code)
 
-        return query.order_by(LogErro.timestamp.desc()).all()
+        return query.order_by(LogErro.timestamp.desc()).offset(offset).limit(limit).all()
 
     def criar(self, log: LogErro) -> LogErro:
         self.db.add(log)
         self.db.commit()
         self.db.refresh(log)
         return log
+
+    def remover_todos(self) -> int:
+        count = self.db.query(LogErro).count()
+        self.db.query(LogErro).delete()
+        self.db.commit()
+        return count
