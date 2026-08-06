@@ -67,12 +67,25 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def generic_exception_handler(request: Request, exc: Exception):
     import traceback as tb
 
-    tb_str = "".join(tb.format_exception(type(exc), exc, exc.__traceback__))
+    full_tb = tb.format_exception(type(exc), exc, exc.__traceback__)
+    tb_lines = [line.rstrip() for line in full_tb if line.strip()]
 
-    max_tb_length = 4096
+    app_lines = [line for line in tb_lines if "File \"" in line and ("/app/" in line or "\\app\\" in line or "app/" in line)]
+    first_line = tb_lines[0] if tb_lines else ""
+    last_line = tb_lines[-1] if tb_lines else ""
+
+    if app_lines:
+        tb_str = first_line + "\n" + app_lines[-1] + "\n" + last_line
+    else:
+        file_lines = [line for line in tb_lines if "File \"" in line]
+        if file_lines:
+            tb_str = first_line + "\n" + file_lines[-1] + "\n" + last_line
+        else:
+            tb_str = first_line + "\n" + last_line
+
+    max_tb_length = 500
     if len(tb_str) > max_tb_length:
-        keep = max_tb_length // 2
-        tb_str = tb_str[:keep] + "\n... [truncado] ...\n" + tb_str[-keep:]
+        tb_str = tb_str[:max_tb_length] + "... [truncado]"
 
     logger.bind(
         correlation_id=request.headers.get("X-Correlation-ID", "-"),
