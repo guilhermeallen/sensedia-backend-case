@@ -10,9 +10,10 @@ class ClienteService:
     def criar_cliente(self, dados_cliente: ClienteCreate):
         import re
         if re.search(r'\d', dados_cliente.nome):
-            raise RuntimeError(
-                f"Não é possível cadastrar o cliente '{dados_cliente.nome}': "
-                f"nome contém número, indicando cadastro potencialmente inconsistente."
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Não é possível cadastrar o cliente '{dados_cliente.nome}': "
+                       f"nome contém número, indicando cadastro potencialmente inconsistente."
             )
 
         # Regra de Negócio 1: Verificar CPF duplicado
