@@ -1,19 +1,31 @@
+import re
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.repositories.cliente_repo import ClienteRepository
 from app.schemas.schemas import ClienteCreate
 
+
 class ClienteService:
     def __init__(self, db: Session):
         self.repository = ClienteRepository(db)
 
-    def criar_cliente(self, dados_cliente: ClienteCreate):
-        import re
-        if re.search(r'\d', dados_cliente.nome):
-            raise RuntimeError(
-                f"Não é possível cadastrar o cliente '{dados_cliente.nome}': "
-                f"nome contém número, indicando cadastro potencialmente inconsistente."
+    def _validar_nome(self, nome: str) -> None:
+        """Validate that a client name does not contain digits.
+        
+        Raises HTTPException(400) if validation fails.
+        """
+        if re.search(r'\d', nome):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Não é possível cadastrar o cliente '{nome}': "
+                    f"nome contém número, indicando cadastro potencialmente inconsistente."
+                )
             )
+
+    def criar_cliente(self, dados_cliente: ClienteCreate):
+        # Validação: Nome não pode conter números
+        self._validar_nome(dados_cliente.nome)
 
         # Regra de Negócio 1: Verificar CPF duplicado
         if self.repository.buscar_por_cpf(dados_cliente.cpf):
@@ -50,15 +62,25 @@ class ClienteService:
     def atualizar_cliente(self, id: int, dados_novos: dict):
         cliente = self.buscar_cliente(id)
 
+        # Validação: Se estiver atualizando o nome, verificar se não contém números
+        if "nome" in dados_novos:
+            self._validar_nome(dados_novos["nome"])
+
         # Validação extra: Se estiver tentando mudar o CPF, verificar se já não existe em OUTRO cliente
         if "cpf" in dados_novos and dados_novos["cpf"] != cliente.cpf:
             if self.repository.buscar_por_cpf(dados_novos["cpf"]):
-                raise HTTPException(status_code=400, detail="CPF já cadastrado em outro cliente.")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="CPF já cadastrado em outro cliente."
+                )
         
         # Validação extra: Email duplicado
         if "email" in dados_novos and dados_novos["email"] != cliente.email:
             if self.repository.buscar_por_email(dados_novos["email"]):
-                raise HTTPException(status_code=400, detail="Email já cadastrado em outro cliente.")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email já cadastrado em outro cliente."
+                )
 
         for key, value in dados_novos.items():
             setattr(cliente, key, value)
