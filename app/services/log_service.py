@@ -1,13 +1,18 @@
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from app.core.db_status import banco_disponivel
 from app.repositories.log_repo import LogRepository
+from app.repositories.mock_repo import MockLogRepository
 from app.models.models import LogErro
 
 
 class LogService:
     def __init__(self, db: Session):
-        self.repository = LogRepository(db)
+        if banco_disponivel():
+            self.repository = LogRepository(db)
+        else:
+            self.repository = MockLogRepository()
 
     def buscar_logs(
         self,

@@ -1,11 +1,16 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from app.core.db_status import banco_disponivel
 from app.repositories.cliente_repo import ClienteRepository
+from app.repositories.mock_repo import MockClienteRepository
 from app.schemas.schemas import ClienteCreate
 
 class ClienteService:
     def __init__(self, db: Session):
-        self.repository = ClienteRepository(db)
+        if banco_disponivel():
+            self.repository = ClienteRepository(db)
+        else:
+            self.repository = MockClienteRepository()
 
     def criar_cliente(self, dados_cliente: ClienteCreate):
         import re

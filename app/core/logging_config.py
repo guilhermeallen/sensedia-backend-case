@@ -2,11 +2,14 @@ import sys
 import traceback as tb_module
 from loguru import logger
 from app.core.database import SessionLocal
+from app.core.db_status import banco_disponivel
 from app.models.models import LogErro
 
 
 def postgres_sink(message):
     try:
+        if not banco_disponivel():
+            return
         record = message.record
         log_erro = LogErro(
             level=record["level"].name,
@@ -36,11 +39,12 @@ def setup_logging():
 
     logger.add(
         sys.stdout,
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level:<8} | {extra.get('correlation_id', '-')} | {message}",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level:<8} | {extra[correlation_id]} | {message}",
         level="INFO",
     )
 
     logger.add(
         postgres_sink,
         level="WARNING",
+        enqueue=True,
     )
